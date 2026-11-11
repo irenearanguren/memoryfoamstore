@@ -28,9 +28,7 @@ const visibleProducts = computed(() =>
   filteredProducts.value.slice(page.value * pageSize, (page.value + 1) * pageSize)
 )
 const heroImages = computed(() =>
-  (catalog.value?.images ?? []).filter((image) =>
-    products.value.some((product) => product.id === image.product_id)
-  )
+  products.value.map((product) => productImage(product)).filter(Boolean)
 )
 const currentHeroImage = computed(() =>
   heroImages.value.length ? heroImages.value[heroImageIndex.value % heroImages.value.length] : null
@@ -38,6 +36,7 @@ const currentHeroImage = computed(() =>
 const globalLinks = computed(() =>
   (catalog.value?.links ?? []).filter((link) => link.product_id === null)
 )
+const siteUrl = useRuntimeConfig().public.siteUrl.replace(/\/+$/, '')
 
 watch(search, () => {
   page.value = 0
@@ -45,14 +44,66 @@ watch(search, () => {
 
 useSeoMeta({
   title: 'ATE Memory Foam | Confort para cada día',
-  description: 'Cojines de memory foam y productos ergonómicos. Compra online desde Barquisimeto.',
+  description: 'Almohadas cervicales de memory foam y espuma viscoelástica. Compra online con envíos en toda Venezuela.',
+  keywords: 'almohada cervical, memory foam, espuma viscoelástica, almohadas en Venezuela, venta online',
   ogTitle: 'ATE Memory Foam',
-  ogDescription: 'Confort ergonómico para cada día. Compra online desde Barquisimeto.',
-  ogType: 'website'
+  ogDescription: 'Almohadas cervicales de memory foam y espuma viscoelástica con venta online en toda Venezuela.',
+  ogType: 'website',
+  ogUrl: `${siteUrl}/`,
+  ogLocale: 'es_VE',
+  twitterCard: 'summary'
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: `${siteUrl}/` }],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebSite',
+            '@id': `${siteUrl}/#website`,
+            url: `${siteUrl}/`,
+            name: 'ATE Memory Foam',
+            inLanguage: 'es-VE'
+          },
+          {
+            '@type': 'OnlineStore',
+            '@id': `${siteUrl}/#store`,
+            name: 'ATE Memory Foam',
+            url: `${siteUrl}/`,
+            description: 'Almohadas cervicales de memory foam y espuma viscoelástica con venta online en toda Venezuela.',
+            areaServed: {
+              '@type': 'Country',
+              name: 'Venezuela'
+            },
+            knowsAbout: ['Almohadas cervicales', 'Memory foam', 'Espuma viscoelástica']
+          }
+        ]
+      })
+    }
+  ]
 })
 
 function productImages(productId) {
   return (catalog.value?.images ?? []).filter((image) => image.product_id === productId)
+}
+
+function productImage(product) {
+  const image = productImages(product.id)[0]
+  if (image) return image
+
+  const localImages = {
+    'almohada-cervical-ola': '/products/almohada-cervical-ola.jpg',
+    'cojin-para-sillas': '/products/cojin-para-sillas.jpg',
+    'cojin-asiento-soporte-lumbar': '/products/cojin-asiento-soporte-lumbar.jpg',
+    'soporte-lumbar': '/products/soporte-lumbar.jpg',
+    'soporte-lumbar-2': '/products/soporte-lumbar-2.jpg'
+  }
+  const url = localImages[product.slug]
+  return url ? { url, alt_text: product.name } : null
 }
 
 function productLinks(productId) {
@@ -180,9 +231,9 @@ function moveHeroImage(direction) {
             <article v-for="product in visibleProducts" :key="product.id" class="product-card">
               <div class="product-image">
                 <img
-                  v-if="productImages(product.id)[0]"
-                  :src="productImages(product.id)[0].url"
-                  :alt="productImages(product.id)[0].alt_text || product.name"
+                  v-if="productImage(product)"
+                  :src="productImage(product).url"
+                  :alt="productImage(product).alt_text || product.name"
                   loading="lazy"
                 >
                 <span v-else class="product-image-placeholder" aria-hidden="true">☁</span>
