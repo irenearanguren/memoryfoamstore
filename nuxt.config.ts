@@ -4,8 +4,8 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      supabaseUrl: '',
-      supabaseAnonKey: '',
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseKey: process.env.SUPABASE_KEY,
       siteUrl: 'https://memoryfoamstore-jf8yicked-irene-aranguren.vercel.app',
       gaMeasurementId: 'G-N8T4YBYQR0'
     }
