@@ -20,7 +20,8 @@ export async function loadCatalog() {
     if (result.error) {
       throw createError({
         statusCode: 500,
-        statusMessage: `No se pudo cargar el catálogo: ${result.error.message}`
+        statusMessage: 'No se pudo cargar el catálogo',
+        message: result.error.message
       })
     }
   }
