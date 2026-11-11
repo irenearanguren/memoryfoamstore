@@ -6,6 +6,10 @@ export async function loadCatalog() {
   const supabaseAnonKey = config.public.supabaseAnonKey
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[catalog] Supabase is not configured', {
+      hasUrl: Boolean(supabaseUrl),
+      hasAnonKey: Boolean(supabaseAnonKey)
+    })
     return { configured: false, products: [], images: [], links: [] }
   }
 
@@ -16,8 +20,17 @@ export async function loadCatalog() {
     supabase.from('links').select('*').order('sort_order')
   ])
 
-  for (const result of [productsResult, imagesResult, linksResult]) {
+  for (const [table, result] of [
+    ['products', productsResult],
+    ['product_images', imagesResult],
+    ['links', linksResult]
+  ]) {
     if (result.error) {
+      console.error('[catalog] Supabase query failed', {
+        table,
+        code: result.error.code,
+        message: result.error.message
+      })
       throw createError({
         statusCode: 500,
         statusMessage: 'No se pudo cargar el catálogo',
